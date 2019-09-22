@@ -1,4 +1,5 @@
-﻿using RestSharp;
+﻿using System;
+using RestSharp;
 using RestSharp.Authenticators;
 
 namespace Salesforce.MarketingCloud.Authentication
@@ -7,21 +8,17 @@ namespace Salesforce.MarketingCloud.Authentication
     {
         private readonly IAuthService authService;
 
-//        public ServerToServerOAuth2Authenticator()
-//        {
-//            
-//        }
-
         public ServerToServerOAuth2Authenticator(IAuthService authService)
         {
             this.authService = authService;
         }
 
-        public virtual void Authenticate(IRestClient client, IRestRequest request)
+        public void Authenticate(IRestClient client, IRestRequest request)
         {
-            var token = this.authService.GetToken();
+            var (restInstanceUrl, accessToken) = this.authService.GetToken();
 
-            request.AddHeader("Authorization", $"Bearer {token}");
+            client.BaseUrl = new Uri(restInstanceUrl);
+            request.AddHeader("Authorization", $"Bearer {accessToken}");
         }
     }
 }

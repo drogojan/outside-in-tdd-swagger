@@ -5,39 +5,25 @@ using RestSharp;
 using RestSharp.Authenticators;
 using Salesforce.MarketingCloud.Api;
 using Salesforce.MarketingCloud.Authentication;
+using Salesforce.MarketingCloud.Client;
 
 namespace Salesforce.MarketingCloud.Test.Acceptance
 {
     [TestFixture]
-    public class ApiAccessorShould
+    public class ApiAccessorShould : AcceptanceTest
     {
         [Test]
         public void Authenticate_The_Request()
         {
-            IAuthService authServiceStub = Substitute.For<IAuthService>();
-            IAuthenticator authenticatorSpy = Substitute.For<ServerToServerOAuth2Authenticator>(authServiceStub);
-            authenticatorSpy.When(m => m.Authenticate(Arg.Any<IRestClient>(), Arg.Any<IRestRequest>())).CallBase();
+            var restClient = new RestClient();
+            var clientConfig = new ClientConfig(AuthorizationBaseUrl, ClientId, ClientSecret, AccountId);
+            var authService = new AuthService(restClient, clientConfig);
+            var serverToServerOAuth2Authenticator = new ServerToServerOAuth2Authenticator(authService);
 
-            CampaignApi campaignApi = new CampaignApi(authenticatorSpy);
-            // TODO - remove the try/catch block when all the pieces are in place
-            try
-            {
-                campaignApi.GetAllCampaigns();
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-            }
+            CampaignApi campaignApi = new CampaignApi(serverToServerOAuth2Authenticator);
+            var campaigns = campaignApi.GetAllCampaigns();
 
-            authenticatorSpy.Received(1).Authenticate(Arg.Any<IRestClient>(),
-                Arg.Is<IRestRequest>(
-                    request =>
-                                request.Parameters.Exists(
-                                    parameter =>
-                                            parameter.Type == ParameterType.HttpHeader 
-                                            && parameter.Name == "Authorization" 
-                                            && parameter.Value.ToString().StartsWith("Bearer ") 
-                                            && parameter.Value.ToString().Length > 7)));
+            Assert.NotNull(campaigns);
         }
     }
 }
