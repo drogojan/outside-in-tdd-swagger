@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using RestSharp;
 using Salesforce.MarketingCloud.Client;
 
@@ -20,6 +21,7 @@ namespace Salesforce.MarketingCloud.Authentication
         public (string RestInstanceUrl, string AccessToken) GetToken()
         {
             this.restClient.BaseUrl = new Uri(clientConfig.AuthUrl);
+
             RestRequest tokenRequest = new RestRequest(
                 new Uri("v2/token", UriKind.Relative),
                 Method.POST)
@@ -29,12 +31,7 @@ namespace Salesforce.MarketingCloud.Authentication
             var postBody = GetPostBody();
             tokenRequest.AddJsonBody(postBody);
 
-//            var (accessToken, restInstanceUrl) = 
-//                this.restClient.Execute<(string access_token, string rest_instance_url)>(tokenRequest).Data;
-
-
             var result = this.restClient.Execute(tokenRequest).Content;
-
             dynamic jsonResponse = JsonConvert.DeserializeObject(result);
 
             return (jsonResponse.rest_instance_url, jsonResponse.access_token);
@@ -42,11 +39,13 @@ namespace Salesforce.MarketingCloud.Authentication
 
         private JsonObject GetPostBody()
         {
-            JsonObject postBody = new JsonObject();
-            postBody.Add("client_id", clientConfig.ClientId);
-            postBody.Add("client_secret", clientConfig.ClientSecret);
-            postBody.Add("account_id", clientConfig.AccountId);
-            postBody.Add("grant_type", "client_credentials");
+            JsonObject postBody = new JsonObject
+            {
+                {"client_id", clientConfig.ClientId},
+                {"client_secret", clientConfig.ClientSecret},
+                {"account_id", clientConfig.AccountId},
+                {"grant_type", "client_credentials"}
+            };
             return postBody;
         }
     }
