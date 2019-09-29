@@ -15,7 +15,7 @@ namespace Salesforce.MarketingCloud.Authentication
 
         public void Authenticate(IRestClient client, IRestRequest request)
         {
-            var (restInstanceUrl, accessToken) = this.authService.GetToken();
+            var (restInstanceUrl, accessToken, _) = this.authService.GetToken();
 
             client.BaseUrl = new Uri(restInstanceUrl);
             request.AddHeader("Authorization", $"Bearer {accessToken}");

@@ -1,5 +1,4 @@
-﻿using System;
-using NSubstitute;
+﻿using NSubstitute;
 using NUnit.Framework;
 using RestSharp;
 using RestSharp.Authenticators;
@@ -18,7 +17,10 @@ namespace Salesforce.MarketingCloud.Test.Acceptance
             var restClient = new RestClient();
             var clientConfig = new ClientConfig(AuthorizationBaseUrl, ClientId, ClientSecret, AccountId);
             var authService = new AuthService(restClient, clientConfig);
-            var serverToServerOAuth2Authenticator = new ServerToServerOAuth2Authenticator(authService);
+            var cacheService = new Cache();
+            (string AccountId, string ClientId) cacheKeyComponents = (clientConfig.ClientId, clientConfig.AccountId);
+            var cachingAuthService = new CachingAuthService(authService, cacheService, cacheKeyComponents);
+            var serverToServerOAuth2Authenticator = new ServerToServerOAuth2Authenticator(cachingAuthService);
 
             CampaignApi campaignApi = new CampaignApi(serverToServerOAuth2Authenticator);
             var campaigns = campaignApi.GetAllCampaigns();

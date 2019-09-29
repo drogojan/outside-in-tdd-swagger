@@ -13,7 +13,7 @@ namespace Salesforce.MarketingCloud.Test.Unit
         public void Set_The_Access_Token_In_The_Header()
         {
             IAuthService authServiceStub = Substitute.For<IAuthService>();
-            var token = (RestInstanceUrl: "https://abc.rest.marketingcloudapis.com/", AccessToken: "auth token");
+            var token = (RestInstanceUrl: "https://abc.rest.marketingcloudapis.com/", AccessToken: "auth token", ExpiresIn: 1200);
             authServiceStub.GetToken().Returns(token);
 
             var sut = new ServerToServerOAuth2Authenticator(authServiceStub);
@@ -27,7 +27,7 @@ namespace Salesforce.MarketingCloud.Test.Unit
         public void Set_The_Base_Url_For_The_Client()
         {
             IAuthService authServiceStub = Substitute.For<IAuthService>();
-            var token = (RestInstanceUrl: "https://abc.rest.marketingcloudapis.com/", AccessToken: "auth token");
+            var token = (RestInstanceUrl: "https://abc.rest.marketingcloudapis.com/", AccessToken: "auth token", ExpiresIn: 1200);
             authServiceStub.GetToken().Returns(token);
 
             var sut = new ServerToServerOAuth2Authenticator(authServiceStub);
