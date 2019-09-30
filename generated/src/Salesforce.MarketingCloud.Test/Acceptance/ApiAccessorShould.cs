@@ -17,8 +17,12 @@ namespace Salesforce.MarketingCloud.Test.Acceptance
         {
             var restClient = new RestClient();
             var clientConfig = new ClientConfig(AuthorizationBaseUrl, ClientId, ClientSecret, AccountId);
+            
             var authService = new AuthService(restClient, clientConfig);
-            var serverToServerOAuth2Authenticator = new ServerToServerOAuth2Authenticator(authService);
+            var cache = new Cache();
+            (string ClientId, string AccountId) tuple = (clientConfig.ClientId, clientConfig.AccountId);
+            var cachingAuthService = new CachingAuthService(authService, cache, tuple);
+            var serverToServerOAuth2Authenticator = new ServerToServerOAuth2Authenticator(cachingAuthService);
 
             CampaignApi campaignApi = new CampaignApi(serverToServerOAuth2Authenticator);
             var campaigns = campaignApi.GetAllCampaigns();
