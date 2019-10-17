@@ -1,19 +1,45 @@
-﻿namespace Salesforce.MarketingCloud.Authentication
+﻿using System;
+using System.Collections.Concurrent;
+
+namespace Salesforce.MarketingCloud.Authentication
 {
     public class Cache : ICache
     {
-        public Cache()
+        private static ConcurrentDictionary<string, (string RestInstanceUrl, string AccessToken, int ExpiresIn, DateTime ExpireDate)> cache;
+        private readonly IDateTimeProvider dateTimeProvider;
+
+        static Cache()
         {
+            cache = new ConcurrentDictionary<string, (string RestInstanceUrl, string AccessToken, int ExpiresIn, DateTime ExpireDate)>();
         }
 
-        public void Add(string key, (string RestInstanceUrl, string AccessToken) token)
+        public Cache(IDateTimeProvider dateTimeProvider)
         {
-            throw new System.NotImplementedException();
+            this.dateTimeProvider = dateTimeProvider;
         }
 
-        public (string RestInstanceUrl, string AccessToken)? Get(string key)
+        public void Add(string key, (string RestInstanceUrl, string AccessToken, int ExpiresIn) token)
         {
-            return null;
+            var cachedToken = (token.RestInstanceUrl, token.AccessToken, token.ExpiresIn, this.dateTimeProvider.Now.AddSeconds(token.ExpiresIn));
+            cache.AddOrUpdate(key, cachedToken, (cachedKey, cachedValue) => { return cachedToken; });
+        }
+
+        public (string RestInstanceUrl, string AccessToken, int ExpiresIn)? Get(string key)
+        {
+            if(!cache.ContainsKey(key))
+            {
+                return ((string RestInstanceUrl, string AccessToken, int ExpiresIn)?)null;
+            }
+            if(this.dateTimeProvider.Now > cache[key].ExpireDate)
+            {
+                return ((string RestInstanceUrl, string AccessToken, int ExpiresIn)?)null;
+            }
+            return (cache[key].RestInstanceUrl, cache[key].AccessToken, cache[key].ExpiresIn);
+        }
+
+        public void Delete(string key)
+        {
+            cache.TryRemove(key, out _);
         }
     }
 }

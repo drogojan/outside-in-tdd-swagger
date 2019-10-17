@@ -19,7 +19,8 @@ namespace Salesforce.MarketingCloud.Test.Acceptance
             var clientConfig = new ClientConfig(AuthorizationBaseUrl, ClientId, ClientSecret, AccountId);
             
             var authService = new AuthService(restClient, clientConfig);
-            var cache = new Cache();
+            var dateTimeProvider = new DefaultDateTimeProvider();
+            var cache = new Cache(dateTimeProvider);
             (string ClientId, string AccountId) tuple = (clientConfig.ClientId, clientConfig.AccountId);
             var cachingAuthService = new CachingAuthService(authService, cache, tuple);
             var serverToServerOAuth2Authenticator = new ServerToServerOAuth2Authenticator(cachingAuthService);

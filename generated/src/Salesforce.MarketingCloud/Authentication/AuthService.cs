@@ -18,7 +18,7 @@ namespace Salesforce.MarketingCloud.Authentication
             this.clientConfig = clientConfig;
         }
 
-        public (string RestInstanceUrl, string AccessToken) GetToken()
+        public (string RestInstanceUrl, string AccessToken, int ExpiresIn) GetToken()
         {
             this.restClient.BaseUrl = new Uri(clientConfig.AuthUrl);
 
@@ -34,7 +34,7 @@ namespace Salesforce.MarketingCloud.Authentication
             var result = this.restClient.Execute(tokenRequest).Content;
             dynamic jsonResponse = JsonConvert.DeserializeObject(result);
 
-            return (jsonResponse.rest_instance_url, jsonResponse.access_token);
+            return (jsonResponse.rest_instance_url, jsonResponse.access_token, jsonResponse.expires_in);
         }
 
         private JsonObject GetPostBody()

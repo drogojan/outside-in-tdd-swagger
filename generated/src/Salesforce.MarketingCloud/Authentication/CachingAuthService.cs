@@ -17,7 +17,7 @@ namespace Salesforce.MarketingCloud.Authentication
 
         // TODO - method injection for cache key?
 
-        public (string RestInstanceUrl, string AccessToken) GetToken()
+        public (string RestInstanceUrl, string AccessToken, int ExpiresIn) GetToken()
         {
             var cachedValue = cache.Get(tuple.ClienId + "-" + tuple.AccountId);
 
@@ -25,7 +25,7 @@ namespace Salesforce.MarketingCloud.Authentication
             {
                 var token = this.authService.GetToken();
                 this.cache.Add(tuple.ClienId + "-" + tuple.AccountId, token);
-                return (token.RestInstanceUrl, token.AccessToken);
+                return (token.RestInstanceUrl, token.AccessToken, token.ExpiresIn);
             }
 
             return cachedValue.Value;

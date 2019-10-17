@@ -2,6 +2,6 @@
 {
     public interface IAuthService
     {
-        (string RestInstanceUrl, string AccessToken) GetToken();
+        (string RestInstanceUrl, string AccessToken, int ExpiresIn) GetToken();
     }
 }

@@ -18,6 +18,7 @@ namespace Salesforce.MarketingCloud.Test.Unit
         private string ACCOUNT_ID = "123456";
         private string ACCESS_TOKEN = "token";
         private string REST_INSTANCE_URL = "https://rest.salesforce.com";
+        private int EXPIRES_IN = 1000;
 
         [Test]
         public void Set_The_BaseUrl_On_The_RestClient()
@@ -28,6 +29,7 @@ namespace Salesforce.MarketingCloud.Test.Unit
             JsonObject tokenResponseJson = new JsonObject();
             tokenResponseJson.Add("rest_instance_url", REST_INSTANCE_URL);
             tokenResponseJson.Add("access_token", ACCESS_TOKEN);
+            tokenResponseJson.Add("expires_in", EXPIRES_IN);
             restResponseStub.Content = tokenResponseJson.ToString();
 
             restClientMock.Execute(Arg.Any<IRestRequest>()).Returns(restResponseStub);
@@ -48,6 +50,7 @@ namespace Salesforce.MarketingCloud.Test.Unit
             JsonObject tokenResponseJson = new JsonObject();
             tokenResponseJson.Add("rest_instance_url", REST_INSTANCE_URL);
             tokenResponseJson.Add("access_token", ACCESS_TOKEN);
+            tokenResponseJson.Add("expires_in", EXPIRES_IN);
             restResponseStub.Content = tokenResponseJson.ToString();
 
             restClientMock.Execute(Arg.Any<IRestRequest>()).Returns(restResponseStub);
@@ -75,7 +78,9 @@ namespace Salesforce.MarketingCloud.Test.Unit
             IRestResponse restResponseStub = Substitute.For<IRestResponse>();
             JsonObject tokenResponseJson = new JsonObject
             {
-                {"rest_instance_url", REST_INSTANCE_URL}, {"access_token", ACCESS_TOKEN}
+                {"rest_instance_url", REST_INSTANCE_URL},
+                { "access_token", ACCESS_TOKEN},
+                { "expires_in", EXPIRES_IN}
             };
             restResponseStub.Content = tokenResponseJson.ToString();
 
@@ -84,10 +89,11 @@ namespace Salesforce.MarketingCloud.Test.Unit
             ClientConfig CLIENT_CONFIG = new ClientConfig(AUTH_URL, CLIENT_ID, CLIENT_SECRET, ACCOUNT_ID);
             AuthService sut = new AuthService(restClientMock, CLIENT_CONFIG);
 
-            (string RestInstanceUrl, string AccessToken) token = sut.GetToken();
+            (string RestInstanceUrl, string AccessToken, int ExpiresIn) token = sut.GetToken();
 
             Assert.AreEqual(ACCESS_TOKEN, token.AccessToken);
             Assert.AreEqual(REST_INSTANCE_URL, token.RestInstanceUrl);
+            Assert.AreEqual(EXPIRES_IN, token.ExpiresIn);
         }
 
         private string TokenRequestPayloadFrom(ClientConfig clientConfig)

@@ -14,6 +14,7 @@ namespace Salesforce.MarketingCloud.Test.Unit
         private string ACCOUNT_ID = "123456";
         private string REST_INSTANCE_URL = "https://rest.salesforce.com";
         private string ACCESS_TOKEN = "token";
+        private int EXPIRES_IN = 1000;
 
         [Test]
         public void Try_To_Get_A_Token_From_Cache()
@@ -33,7 +34,7 @@ namespace Salesforce.MarketingCloud.Test.Unit
         public void Call_The_Token_Api_On_A_Cache_Miss()
         {
             ICache cacheStub = Substitute.For<ICache>();
-            cacheStub.Get(CLIENT_ID + "-" + ACCOUNT_ID).Returns<(string RestInstanceUrl, string AccessToken)?>(((string RestInstanceUrl, string AccessToken)?)null);
+            cacheStub.Get(CLIENT_ID + "-" + ACCOUNT_ID).Returns<(string RestInstanceUrl, string AccessToken, int ExpiresIn)?>(((string RestInstanceUrl, string AccessToken, int ExpiresIn)?)null);
             IAuthService authServiceMock = Substitute.For<IAuthService>();
 
             (string ClienId, string AccountId) tuple = (CLIENT_ID, ACCOUNT_ID);
@@ -49,7 +50,7 @@ namespace Salesforce.MarketingCloud.Test.Unit
         {
             ICache cacheMock = Substitute.For<ICache>();
             IAuthService authServiceStub = Substitute.For<IAuthService>();
-            (string REST_INSTANCE_URL, string ACCESS_TOKEN) token = (REST_INSTANCE_URL, ACCESS_TOKEN);
+            (string REST_INSTANCE_URL, string ACCESS_TOKEN, int EXPIRES_IN) token = (REST_INSTANCE_URL, ACCESS_TOKEN, EXPIRES_IN);
             authServiceStub.GetToken().Returns(token);
 
             (string ClienId, string AccountId) tuple = (CLIENT_ID, ACCOUNT_ID);
@@ -65,7 +66,7 @@ namespace Salesforce.MarketingCloud.Test.Unit
         {
             ICache cacheStub = Substitute.For<ICache>();
             IAuthService authServiceStub = Substitute.For<IAuthService>();
-            (string REST_INSTANCE_URL, string ACCESS_TOKEN) token = (REST_INSTANCE_URL, ACCESS_TOKEN);
+            (string REST_INSTANCE_URL, string ACCESS_TOKEN, int EXPIRES_IN) token = (REST_INSTANCE_URL, ACCESS_TOKEN, EXPIRES_IN);
             authServiceStub.GetToken().Returns(token);
 
             (string ClienId, string AccountId) tuple = (CLIENT_ID, ACCOUNT_ID);
@@ -75,6 +76,23 @@ namespace Salesforce.MarketingCloud.Test.Unit
 
             Assert.AreEqual(ACCESS_TOKEN, actualToken.AccessToken);
             Assert.AreEqual(REST_INSTANCE_URL, actualToken.RestInstanceUrl);
+        }
+
+        [Test]
+        public void Not_Call_AuthService_When_Cached_Value_Exists()
+        {
+            ICache cacheStub = Substitute.For<ICache>();
+            (string RestInstaceUrl, string AccessToken, int ExpiresIn) cachedValue = (REST_INSTANCE_URL, ACCESS_TOKEN, EXPIRES_IN);
+            cacheStub.Get(CLIENT_ID + "-" + ACCOUNT_ID).Returns(cachedValue);
+
+            IAuthService authServiceMock = Substitute.For<IAuthService>();
+
+            (string ClienId, string AccountId) tuple = (CLIENT_ID, ACCOUNT_ID);
+            CachingAuthService sut = new CachingAuthService(authServiceMock, cacheStub, tuple);
+
+            var actualToken = sut.GetToken();
+
+            authServiceMock.DidNotReceive().GetToken();
         }
     }
 }
